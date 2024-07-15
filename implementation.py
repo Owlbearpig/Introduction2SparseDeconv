@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.linalg import toeplitz, norm
+from scipy.linalg import toeplitz, norm, circulant
 from scipy.fftpack import rfft
 from numpy.fft import rfft, irfft
 from pathlib import Path
@@ -17,13 +17,11 @@ def load_and_correction(path, bkg_path):
 
     end_ind = max_sample_points  # len(data.T[1])
     start_ind = min_sample_points
-    fs = 1/np.mean(np.diff(t))
+    fs = 1 / np.mean(np.diff(t))
     y = butter_bandpass_filter((data.T[1] - bkg_data.T[1])[start_ind:end_ind], lowcut=0.05, highcut=1.8, fs=fs, order=5)
     y -= np.mean(y)
 
     normalization = 1 / np.max(y)
-
-
 
     return t[start_ind:end_ind], y * normalization
 
@@ -40,6 +38,9 @@ def toeplitz_j(ref):  # convolve(ref, y, mode="wrap") from scipy.ndimage.filters
     return c[0:-1, 0:-1]
 
 
+op = circulant
+
+
 def ista_deconvolve(ref, sample, new_imp=False, lambda_=None, step_scale=None, max_iterations=None):
     """
     sparse deconvolution using an iterative shrinkage algorithm
@@ -51,6 +52,7 @@ def ista_deconvolve(ref, sample, new_imp=False, lambda_=None, step_scale=None, m
     n: number of iterations
     new_imp: Hehe
     """
+
     if not lambda_:
         lambda_ = 12
     if not step_scale:
@@ -60,7 +62,7 @@ def ista_deconvolve(ref, sample, new_imp=False, lambda_=None, step_scale=None, m
     if not max_iterations:
         max_iterations = 2000
 
-    H = toeplitz_j(ref)
+    H = op(ref)
     tau = step_scale * shrinkage_factor(H)
 
     def soft_threshold(v):
@@ -79,7 +81,6 @@ def ista_deconvolve(ref, sample, new_imp=False, lambda_=None, step_scale=None, m
     cir_dot = lambda x, y: irfft(np.multiply(rfft(x[:, 0]), rfft(y)))
 
     def calc_cir(H_, sample_, f_):
-
         return cir_dot(H_.T, cir_dot(H_, f_) - sample_)
 
     if new_imp:
@@ -115,7 +116,4 @@ def ista_deconvolve(ref, sample, new_imp=False, lambda_=None, step_scale=None, m
     rel_errors.append((round(relerr, int(-np.log10(relerr)) + 2), n))
     ssq = ssq_new
 
-    if new_imp:
-        return f, rel_errors
-    else:
-        return f, relerr, n
+    return f, rel_errors

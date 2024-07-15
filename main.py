@@ -4,10 +4,11 @@ from scipy.linalg import toeplitz, norm
 from scipy.fftpack import rfft
 from pathlib import Path
 from implementation import load_and_correction, ista_deconvolve, toeplitz_j
+from tttt import ista_deconvolve as ista_og
 
-iterations = 30
-lambda_ = 12
-step = 2#0.1
+iterations = 200
+lambda_ = 2
+step = 1  #0.1
 
 
 def deconv_plot(t, y, ref, H, deconvolution, sample_file_path, fig_num):
@@ -51,6 +52,7 @@ def davor():
     plt.legend()
     """
     f, _ = ista_deconvolve(ref, y, new_imp=True, max_iterations=iterations, lambda_=lambda_, step_scale=step)
+    # f = ista_og(ref, y, lambda_=lambda_)
     min_pos, max_pos = t_ref[np.argmin(f)], t_ref[np.argmax(f)]
     print("Davor", min_pos, max_pos, min_pos - max_pos)
 
@@ -77,6 +79,7 @@ def danach():
     plt.legend()
     """
     f, _ = ista_deconvolve(ref, y, new_imp=True, max_iterations=iterations, lambda_=lambda_, step_scale=step)
+    # f = ista_og(ref, y, lambda_=lambda_)
     min_pos, max_pos = t_ref[np.argmin(f)], t_ref[np.argmax(f)]
     print("Danach", min_pos, max_pos, min_pos - max_pos)
 

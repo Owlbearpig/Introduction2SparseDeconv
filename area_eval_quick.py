@@ -4,7 +4,7 @@ from implementation import ista_deconvolve
 from pathlib import Path
 import numpy as np
 import multiprocessing
-from scipy.linalg import toeplitz, norm
+from scipy.linalg import toeplitz, norm, circulant
 from scipy.fftpack import rfft
 from numpy.fft import rfft, irfft
 
@@ -12,7 +12,7 @@ base_dir = Path(r"/home/ftpuser/ftp/Data/Misc/MariaLisa/Baby/CompleteAreas")
 
 test_mode = True  # enable(False) or disable(True) saving
 start_ind = 0
-end_ind = 2000
+end_ind = 4000
 lambda_ = 12
 step_scale = 2
 max_iterations = 30
@@ -53,7 +53,7 @@ def eval_area():
 
         t_ref, y_ref_corrected = pre_process(ref_td[:, 0], ref_td[:, 1])
 
-        H = toeplitz_j(y_ref_corrected)
+        H = circulant(y_ref_corrected)
         tau = step_scale * shrinkage_factor(H)
 
         f_results = np.zeros((len(filenames), len(t_ref)))

@@ -53,14 +53,14 @@ def eval_area(lam):
                 print("Completed " + s)
             print(i)
 
+
 if __name__ == '__main__':
     eval_area(12)
-    exit()
     num_workers = multiprocessing.cpu_count()
     lambdas = np.arange(1, 14, 1)
 
     # split lambdas into parts with num_workers in each
-    lambda_chunks = [list(lambdas[i:i+num_workers]) for i in range(0, len(lambdas), num_workers)]
+    lambda_chunks = [list(lambdas[i:i + num_workers]) for i in range(0, len(lambdas), num_workers)]
 
     # doesn't work if each function argument is not iterable...
     for worker_chunk in lambda_chunks:

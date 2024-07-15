@@ -1,11 +1,13 @@
 import numpy as np
+import numba as nb
 from scipy.linalg import toeplitz, norm
 import timeit
 from numpy.fft import rfft, irfft
 
+
 np.random.seed(420)
 
-n = 2000
+n = 2 ** 11 - 2
 ref = np.random.random(n)
 sam = np.random.random(n)
 f = np.random.random(n)
@@ -24,8 +26,11 @@ def calc(H_, sam_, f_):
     return np.dot(H_.T, np.dot(H_, f_) - sam_)
 
 
+# @nb.njit(cache=True)
 def cir_calc(H_, sam_, f_):
-    return cir_dot(H_.T, cir_dot(H_, f_) - sam_)
+    dot1 = irfft(np.multiply(rfft(ref), rfft(f_)))
+    res = irfft(np.multiply(rfft(ref), rfft(dot1 - sam_)))
+    return res
 
 
 def cir_dot(H_, c_):
@@ -38,23 +43,23 @@ def dot(H_, f_):
 
 t0 = timeit.default_timer()
 
-for i in range(1000):
+for i in range(200):
     if i % 200 == 0:
         print(i)
-    # dot(H, f)
-    # calc(H, sam, f)
+    calc(H, sam, f)
 
 print("standard matrix mult: ", timeit.default_timer() - t0)
 
-t0 = timeit.default_timer()
+times = []
+for i in range(100):
+    t0 = timeit.default_timer()
 
-for i in range(200):
-    if i % 100 == 0:
-        print(i)
-    # cir_dot(H, f)
-    cir_calc(H, sam, f)
+    for i in range(200):
+        cir_calc(H, sam, f)
+    t1 = timeit.default_timer() - t0
+    times.append(t1)
 
-print("fft: ", timeit.default_timer() - t0)
-
+print(times)
+print(np.mean(times))
 print(calc(H, sam, f))
 print(cir_calc(H, sam, f))
